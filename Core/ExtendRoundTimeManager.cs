@@ -84,6 +84,11 @@ namespace cs2_rockthevote
                 Votes[PlayerVotes[player]] -= 1;
             }
 
+            if (!Votes.ContainsKey(voteResponse))
+            {
+                Votes[voteResponse] = 0;
+            }
+
             Votes[voteResponse] += 1;
             PlayerVotes[player] = voteResponse;
             player.PrintToCenter(_localizer.LocalizeWithPrefix("extendtime.you-voted", voteResponse));
@@ -122,7 +127,10 @@ namespace cs2_rockthevote
 
             foreach (var answer in answers)
             {
-                Votes[answer] = 0;
+                if (!Votes.ContainsKey(answer))
+                {
+                    Votes[answer] = 0;
+                }
                 menu.AddMenuOption(answer, (player, option) =>
                 {
                     ExtendTimeVoted(player, answer);
