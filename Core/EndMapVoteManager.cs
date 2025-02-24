@@ -132,6 +132,7 @@ namespace cs2_rockthevote
             {
                 Votes[PlayerVotes[player]] -= 1;
                 PlayerVotes.Remove(player);
+                _voted.Remove(player.UserId!.Value);
                 player.PrintToChat(_localizer.LocalizeWithPrefix("general.vote-revoked-choose-again"));
                 ShowMapVoteMenu(player); // Bring back the map vote menu
             }
