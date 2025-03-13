@@ -76,6 +76,7 @@ namespace cs2_rockthevote.Core
 
         void LoadCvar()
         {
+            _timeLimit = ConVar.Find("mp_timelimit");
             if (_timeLimit == null)
             {
                 Server.PrintToConsole("Unable to get the value for 'mp_timelimit'.");
