@@ -288,6 +288,7 @@ namespace cs2_rockthevote
 
                     _nominationManager.ResetNominations();
                     _nominationManager.Nomlist.Clear();
+                    mapEnd = false;
                 }
             }
             else
