@@ -93,7 +93,11 @@ namespace cs2_rockthevote
             KillTimer();
             _eomConfig!.ExtendLimit = _totalExtendLimit;
 
+            // Make sure all state flags are reset
             _pluginState.EofVoteHappening = false;
+            _pluginState.CommandsDisabled = false;
+            _pluginState.MapChangeScheduled = false;
+            _pluginState.ExtendTimeVoteHappening = false;
 
             if (_configBackup is not null)
             {
