@@ -98,6 +98,7 @@ namespace cs2_rockthevote
             _pluginState.CommandsDisabled = false;
             _pluginState.MapChangeScheduled = false;
             _pluginState.ExtendTimeVoteHappening = false;
+            _plugin?.Logger.LogInformation("OnMapStart: Reset all state flags including EofVoteHappening to false");
 
             if (_configBackup is not null)
             {
@@ -311,6 +312,7 @@ namespace cs2_rockthevote
             finally
             {
                 _pluginState.EofVoteHappening = false;
+                _plugin?.Logger.LogInformation("EndVote: Reset EofVoteHappening to false in finally block");
             }
         }
 
@@ -339,6 +341,7 @@ namespace cs2_rockthevote
                 _configBackup = _config;
 
                 _pluginState.EofVoteHappening = true;
+                _plugin?.Logger.LogInformation("StartVote: Set EofVoteHappening to true at start of vote");
                 _config = config;
                 int mapsToShow = _config!.MapsToShow == 0 ? MAX_OPTIONS_HUD_MENU : _config!.MapsToShow;
                 if (config.HudMenu && mapsToShow > MAX_OPTIONS_HUD_MENU)
@@ -371,6 +374,7 @@ namespace cs2_rockthevote
                     {
                         // Ensure flag is reset even if there's an exception in the timer callback
                         _pluginState.EofVoteHappening = false;
+                        _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in timer callback");
                         _plugin?.Logger.LogError($"Error in vote timer: {ex.Message}");
                     }
                 }, TimerFlags.REPEAT);
@@ -378,6 +382,7 @@ namespace cs2_rockthevote
             catch (Exception ex)
             {
                 _pluginState.EofVoteHappening = false;
+                _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in StartVote");
                 _plugin?.Logger.LogError($"Error starting vote: {ex.Message}");
             }
         }
