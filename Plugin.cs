@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using cs2_rockthevote.Features;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using static CounterStrikeSharp.API.Core.Listeners;
 
 namespace cs2_rockthevote
@@ -11,7 +12,8 @@ namespace cs2_rockthevote
     {
         public void ConfigureServices(IServiceCollection serviceCollection)
         {
-            var di = new DependencyManager<Plugin, Config>();
+            serviceCollection.AddLogging();
+            var di = new DependencyManager<Plugin, Config>(serviceCollection.BuildServiceProvider().GetRequiredService<ILogger<DependencyManager<Plugin, Config>>>());
             di.LoadDependencies(typeof(Plugin).Assembly);
             di.AddIt(serviceCollection);
             serviceCollection.AddScoped<StringLocalizer>();
@@ -83,9 +85,11 @@ namespace cs2_rockthevote
 
         public override void Load(bool hotReload)
         {
+            Logger.LogInformation($"Plugin loading... (hot reload: {hotReload})");
             _dependencyManager.OnPluginLoad(this);
             _mapLister.OnLoad(this); // ensure map is loaded
             RegisterListener<OnMapStart>(_dependencyManager.OnMapStart);
+            Logger.LogInformation("Plugin loaded successfully");
         }
 
         [GameEventHandler(HookMode.Post)]

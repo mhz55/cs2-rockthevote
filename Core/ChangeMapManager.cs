@@ -1,7 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Menu;
+using Microsoft.Extensions.Logging;
 
 namespace cs2_rockthevote
 {
@@ -63,6 +63,7 @@ namespace cs2_rockthevote
         {
             NextMap = null;
             _prefix = DEFAULT_PREFIX;
+            _plugin?.Logger.LogInformation($"ChangeMapManager: Map started, resetting next map state");
         }
 
         public bool ChangeNextMap(bool mapEnd = false)
@@ -74,20 +75,26 @@ namespace cs2_rockthevote
                 return false;
 
             _pluginState.MapChangeScheduled = false;
+            _plugin?.Logger.LogInformation($"ChangeMapManager: Changing map to {NextMap} (mapEnd: {mapEnd})");
             Server.PrintToChatAll(_localizer.LocalizeWithPrefixInternal(_prefix, "general.changing-map", NextMap!));
             _plugin!.AddTimer(3.0F, () =>
             {
                 Map map = _maps.FirstOrDefault(x => x.Name == NextMap!)!;
                 if (Server.IsMapValid(map.Name))
                 {
+                    _plugin?.Logger.LogInformation($"ChangeMapManager: Executing changelevel command for {map.Name}");
                     Server.ExecuteCommand($"changelevel {map.Name}");
                 }
                 else if (map.Id is not null)
                 {
+                    _plugin?.Logger.LogInformation($"ChangeMapManager: Executing host_workshop_map command for map ID {map.Id}");
                     Server.ExecuteCommand($"host_workshop_map {map.Id}");
                 }
                 else
+                {
+                    _plugin?.Logger.LogInformation($"ChangeMapManager: Executing ds_workshop_changelevel command for {map.Name}");
                     Server.ExecuteCommand($"ds_workshop_changelevel {map.Name}");
+                }
             });
             return true;
         }
