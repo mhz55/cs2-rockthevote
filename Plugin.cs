@@ -39,7 +39,6 @@ namespace cs2_rockthevote
         private readonly NextMapCommand _nextMap;
         private readonly EndMapVoteManager _endMapVoteManager;
         private readonly DisplayMapListCommandHandler _displayMapListCommandHandler;
-        private readonly MapLister _mapLister;
         private readonly ExtendMapCommand _extendMapManager;
         private readonly RevoteCommand _revoteCommand;
 

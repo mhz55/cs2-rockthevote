@@ -176,16 +176,18 @@ namespace cs2_rockthevote
 
         void KillTimer()
         {
-            timeLeft = -1;
             if (Timer is not null)
             {
                 Timer!.Kill();
                 Timer = null;
             }
 
-            if (_pluginState.EofVoteHappening && timeLeft < 0)
+            timeLeft = -1;
+
+            if (_pluginState.EofVoteHappening)
             {
                 _pluginState.EofVoteHappening = false;
+                _plugin?.Logger.LogInformation("KillTimer: Reset EofVoteHappening to false");
             }
         }
 
@@ -333,6 +335,13 @@ namespace cs2_rockthevote
         {
             try
             {
+                // Check if vote is already in progress
+                if (_pluginState.EofVoteHappening || timeLeft > 0)
+                {
+                    _plugin?.Logger.LogWarning("StartVote: Attempted to start a vote while one is already in progress. Ignoring request.");
+                    return;
+                }
+
                 Votes.Clear();
                 PlayerVotes.Clear();
                 _voted.Clear();
@@ -359,6 +368,10 @@ namespace cs2_rockthevote
                     MenuManager.OpenChatMenu(player, menu);
 
                 timeLeft = _config.VoteDuration;
+
+                // Kill any existing timer to avoid duplicates
+                KillTimer();
+
                 Timer = _plugin!.AddTimer(1.0F, () =>
                 {
                     try
@@ -366,13 +379,24 @@ namespace cs2_rockthevote
                         if (timeLeft <= 0)
                         {
                             EndVote();
+                            return; // Add explicit return to ensure code after doesn't run
                         }
                         else
+                        {
                             timeLeft--;
+                            // Add a timeout check as a safety measure
+                            if (_config!.VoteDuration > 0 && ((_config!.VoteDuration - timeLeft) > _config!.VoteDuration + 10))
+                            {
+                                _plugin?.Logger.LogWarning($"Vote timer safety triggered: Vote has been running too long. Forcing end.");
+                                EndVote();
+                                return;
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
                         // Ensure flag is reset even if there's an exception in the timer callback
+                        KillTimer(); // Make sure to kill the timer on exception
                         _pluginState.EofVoteHappening = false;
                         _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in timer callback");
                         _plugin?.Logger.LogError($"Error in vote timer: {ex.Message}");
@@ -381,6 +405,7 @@ namespace cs2_rockthevote
             }
             catch (Exception ex)
             {
+                KillTimer(); // Make sure to kill any timer if exception occurs
                 _pluginState.EofVoteHappening = false;
                 _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in StartVote");
                 _plugin?.Logger.LogError($"Error starting vote: {ex.Message}");

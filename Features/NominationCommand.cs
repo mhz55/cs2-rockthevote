@@ -11,9 +11,8 @@ namespace cs2_rockthevote
 
     public partial class Plugin
     {
-        private StringLocalizer _localizer = null!;
         private MapLister _mapLister = null!;
-        private MapCooldown _mapCooldown = null!;
+        private StringLocalizer _localizer = null!;
 
         [ConsoleCommand("css_nominate", "nominate a map to rtv")]
         [ConsoleCommand("nominate", "nominate a map to rtv")]
@@ -33,7 +32,7 @@ namespace cs2_rockthevote
         {
             if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/root"))
             {
-                player.PrintToChat(_nominationManager.GetLocalizer().LocalizeWithPrefix("general.error.no-permission"));
+                player.PrintToChat(_localizer.LocalizeWithPrefix("general.error.no-permission"));
                 return;
             }
 
@@ -41,7 +40,7 @@ namespace cs2_rockthevote
             if (string.IsNullOrEmpty(map))
             {
                 if (player != null)
-                    player.PrintToChat(_nominationManager.GetLocalizer().LocalizeWithPrefix("general.error.invalid-command-usage"));
+                    player.PrintToChat(_localizer.LocalizeWithPrefix("general.error.invalid-command-usage"));
                 else
                     Server.PrintToConsole("Invalid command usage");
                 return;
@@ -78,14 +77,14 @@ namespace cs2_rockthevote
             if (_nominationManager.AddMapToCooldown(matchingMap))
             {
                 if (player != null)
-                    Server.PrintToChatAll(_nominationManager.GetLocalizer().LocalizeWithPrefix("mapcooldown.added", matchingMap));
+                    Server.PrintToChatAll(_localizer.LocalizeWithPrefix("mapcooldown.added", matchingMap));
                 else
                     Server.PrintToConsole($"Map '{matchingMap}' added to cooldown");
             }
             else
             {
                 if (player != null)
-                    player.PrintToChat(_nominationManager.GetLocalizer().LocalizeWithPrefix("mapcooldown.already-in-cooldown", matchingMap));
+                    player.PrintToChat(_localizer.LocalizeWithPrefix("mapcooldown.already-in-cooldown", matchingMap));
                 else
                     Server.PrintToConsole($"Map '{matchingMap}' is already in cooldown");
             }
@@ -272,8 +271,6 @@ namespace cs2_rockthevote
             if (Nominations.ContainsKey(userId))
                 Nominations.Remove(userId);
         }
-
-        public StringLocalizer GetLocalizer() => _localizer;
 
         public string FindMatchingMap(string map, CCSPlayerController player)
         {
