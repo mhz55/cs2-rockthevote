@@ -112,6 +112,11 @@ namespace cs2_rockthevote
                 Votes[PlayerVotes[player]] -= 1;
             }
 
+            if (!Votes.ContainsKey(mapName))
+            {
+                Votes[mapName] = 0;
+            }
+
             Votes[mapName] += 1;
             PlayerVotes[player] = mapName;
             player.PrintToChat(_localizer.LocalizeWithPrefix("emv.you-voted", mapName));
@@ -127,6 +132,7 @@ namespace cs2_rockthevote
             {
                 Votes[PlayerVotes[player]] -= 1;
                 PlayerVotes.Remove(player);
+                _voted.Remove(player.UserId!.Value);
                 player.PrintToChat(_localizer.LocalizeWithPrefix("general.vote-revoked-choose-again"));
                 ShowMapVoteMenu(player); // Bring back the map vote menu
             }
@@ -148,7 +154,10 @@ namespace cs2_rockthevote
 
             if (_eomConfig != null && _eomConfig.AllowExtend && (_eomConfig.ExtendLimit > 0 || _eomConfig.ExtendLimit == -1))
             {
-                Votes[_localizer.Localize("general.extend-current-map")] = 0;
+                if (!Votes.ContainsKey(_localizer.Localize("general.extend-current-map")))
+                {
+                    Votes[_localizer.Localize("general.extend-current-map")] = 0;
+                }
                 menu.AddMenuOption(_localizer.Localize("general.extend-current-map"), (player, option) =>
                 {
                     MapVoted(player, _localizer.Localize("general.extend-current-map"));
@@ -158,7 +167,10 @@ namespace cs2_rockthevote
 
             foreach (var map in mapsEllected.Take((_eomConfig != null && _eomConfig.AllowExtend && (_eomConfig.ExtendLimit > 0 || _eomConfig.ExtendLimit == -1)) ? (MAX_OPTIONS_HUD_MENU - 1) : MAX_OPTIONS_HUD_MENU))
             {
-                Votes[map] = 0;
+                if (!Votes.ContainsKey(map))
+                {
+                    Votes[map] = 0;
+                }
                 menu.AddMenuOption(map, (player, option) =>
                 {
                     MapVoted(player, map);
@@ -276,6 +288,7 @@ namespace cs2_rockthevote
 
                     _nominationManager.ResetNominations();
                     _nominationManager.Nomlist.Clear();
+                    mapEnd = false;
                 }
             }
             else
