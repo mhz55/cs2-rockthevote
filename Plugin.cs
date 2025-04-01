@@ -1,6 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Events;
 using cs2_rockthevote.Features;
 using Microsoft.Extensions.DependencyInjection;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -21,7 +22,7 @@ namespace cs2_rockthevote
     public partial class Plugin : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "RockTheVote";
-        public override string ModuleVersion => "1.9.4";
+        public override string ModuleVersion => "1.9.5";
         public override string ModuleAuthor => "abnerfs, Oz-Lin";
         public override string ModuleDescription => "https://github.com/oz-lin/cs2-rockthevote";
 
