@@ -25,10 +25,10 @@ namespace cs2_rockthevote
     {
         public override string ModuleName => "RockTheVote";
 #if DEBUG
-        public override string ModuleVersion => "1.9.5 (DEBUG)";
+        public override string ModuleVersion => "1.9.6 (DEBUG)";
 #endif
 #if RELEASE
-        public override string ModuleVersion => "1.9.5 (RELEASE)";
+        public override string ModuleVersion => "1.9.6 (RELEASE)";
 #endif
         public override string ModuleAuthor => "abnerfs, Oz-Lin";
         public override string ModuleDescription => "https://github.com/oz-lin/cs2-rockthevote";
