@@ -63,7 +63,9 @@ namespace cs2_rockthevote
         {
             NextMap = null;
             _prefix = DEFAULT_PREFIX;
+#if DEBUG
             _plugin?.Logger.LogInformation($"ChangeMapManager: Map started, resetting next map state");
+#endif
         }
 
         public bool ChangeNextMap(bool mapEnd = false)
@@ -75,24 +77,32 @@ namespace cs2_rockthevote
                 return false;
 
             _pluginState.MapChangeScheduled = false;
+#if DEBUG
             _plugin?.Logger.LogInformation($"ChangeMapManager: Changing map to {NextMap} (mapEnd: {mapEnd})");
+#endif
             Server.PrintToChatAll(_localizer.LocalizeWithPrefixInternal(_prefix, "general.changing-map", NextMap!));
             _plugin!.AddTimer(3.0F, () =>
             {
                 Map map = _maps.FirstOrDefault(x => x.Name == NextMap!)!;
                 if (Server.IsMapValid(map.Name))
                 {
+#if DEBUG
                     _plugin?.Logger.LogInformation($"ChangeMapManager: Executing changelevel command for {map.Name}");
+#endif
                     Server.ExecuteCommand($"changelevel {map.Name}");
                 }
                 else if (map.Id is not null)
                 {
+#if DEBUG
                     _plugin?.Logger.LogInformation($"ChangeMapManager: Executing host_workshop_map command for map ID {map.Id}");
+#endif                                           
                     Server.ExecuteCommand($"host_workshop_map {map.Id}");
                 }
                 else
                 {
+#if DEBUG
                     _plugin?.Logger.LogInformation($"ChangeMapManager: Executing ds_workshop_changelevel command for {map.Name}");
+#endif
                     Server.ExecuteCommand($"ds_workshop_changelevel {map.Name}");
                 }
             });

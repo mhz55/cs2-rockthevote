@@ -24,7 +24,12 @@ namespace cs2_rockthevote
     public partial class Plugin : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "RockTheVote";
-        public override string ModuleVersion => "1.9.5";
+#if DEBUG
+        public override string ModuleVersion => "1.9.5 (DEBUG)";
+#endif
+#if RELEASE
+        public override string ModuleVersion => "1.9.5 (RELEASE)";
+#endif
         public override string ModuleAuthor => "abnerfs, Oz-Lin";
         public override string ModuleDescription => "https://github.com/oz-lin/cs2-rockthevote";
 
@@ -85,11 +90,15 @@ namespace cs2_rockthevote
 
         public override void Load(bool hotReload)
         {
+#if DEBUG
             Logger.LogInformation($"Plugin loading... (hot reload: {hotReload})");
+#endif
             _dependencyManager.OnPluginLoad(this);
             _mapLister.OnLoad(this); // ensure map is loaded
             RegisterListener<OnMapStart>(_dependencyManager.OnMapStart);
+#if DEBUG
             Logger.LogInformation("Plugin loaded successfully");
+#endif
         }
 
         [GameEventHandler(HookMode.Post)]

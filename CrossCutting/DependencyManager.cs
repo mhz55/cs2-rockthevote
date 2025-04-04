@@ -49,32 +49,44 @@ namespace cs2_rockthevote
 
         public void OnMapStart(string mapName)
         {
+#if DEBUG
             Logger.LogInformation($"DependencyManager: Map started, initializing {Dependencies.Count} dependencies");
+#endif
             foreach (var service in Dependencies)
             {
                 service.OnMapStart(mapName);
             }
+#if DEBUG
             Logger.LogInformation("DependencyManager: All dependencies initialized for map start");
+#endif
         }
 
         public void OnPluginLoad(TPlugin plugin)
         {
+#if DEBUG
             Logger.LogInformation($"DependencyManager: Plugin loading, initializing {Dependencies.Count} dependencies");
+#endif
             foreach (var service in Dependencies)
             {
                 service.OnLoad(plugin);
             }
+#if DEBUG
             Logger.LogInformation("DependencyManager: All dependencies initialized for plugin load");
+#endif
         }
 
         public void OnConfigParsed(TConfig config)
         {
+#if DEBUG
             Logger.LogInformation($"DependencyManager: Config parsed, updating {Dependencies.Count} dependencies");
+#endif
             foreach (var service in Dependencies)
             {
                 service.OnConfigParsed(config);
             }
+#if DEBUG
             Logger.LogInformation("DependencyManager: All dependencies updated with new config");
+#endif
         }
     }
 }

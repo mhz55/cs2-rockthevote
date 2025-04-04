@@ -130,7 +130,9 @@ namespace cs2_rockthevote
                 // Log the state of each flag when commands are disabled
                 if (_pluginState.DisableCommands)
                 {
+#if DEBUG
                     _plugin?.Logger.LogInformation($"[RockTheVote] Command rejected due to DisableCommands being true. State flags: MapChangeScheduled={_pluginState.MapChangeScheduled}, EofVoteHappening={_pluginState.EofVoteHappening}, ExtendTimeVoteHappening={_pluginState.ExtendTimeVoteHappening}, CommandsDisabled={_pluginState.CommandsDisabled}");
+#endif
                 }
 
                 player.PrintToChat(_localizer.LocalizeWithPrefix("general.validation.disabled"));
@@ -197,7 +199,9 @@ namespace cs2_rockthevote
                 // Log the state of each flag when commands are disabled
                 if (_pluginState.DisableCommands)
                 {
+#if DEBUG
                     _plugin?.Logger.LogInformation($"[RockTheVote] UnRTV command rejected due to DisableCommands being true. State flags: MapChangeScheduled={_pluginState.MapChangeScheduled}, EofVoteHappening={_pluginState.EofVoteHappening}, ExtendTimeVoteHappening={_pluginState.ExtendTimeVoteHappening}, CommandsDisabled={_pluginState.CommandsDisabled}");
+#endif
                 }
 
                 player.PrintToChat(_localizer.LocalizeWithPrefix("general.validation.disabled"));

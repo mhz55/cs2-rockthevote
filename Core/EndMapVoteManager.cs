@@ -100,8 +100,9 @@ namespace cs2_rockthevote
             _pluginState.CommandsDisabled = false;
             _pluginState.MapChangeScheduled = false;
             _pluginState.ExtendTimeVoteHappening = false;
+#if DEBUG
             _plugin?.Logger.LogInformation("OnMapStart: Reset all state flags including EofVoteHappening to false");
-            
+#endif
             // Restore the config if it was changed by the server command
             if (_configBackup is not null)
             {
@@ -202,7 +203,9 @@ namespace cs2_rockthevote
             if (_pluginState.EofVoteHappening)
             {
                 _pluginState.EofVoteHappening = false;
+#if DEBUG
                 _plugin?.Logger.LogInformation("KillTimer: Reset EofVoteHappening to false");
+#endif
             }
         }
 
@@ -324,12 +327,16 @@ namespace cs2_rockthevote
             }
             catch (Exception ex)
             {
+#if DEBUG
                 _plugin?.Logger.LogError($"Error ending vote: {ex.Message}");
+#endif
             }
             finally
             {
                 _pluginState.EofVoteHappening = false;
+#if DEBUG
                 _plugin?.Logger.LogInformation("EndVote: Reset EofVoteHappening to false in finally block");
+#endif
             }
         }
 
@@ -353,7 +360,9 @@ namespace cs2_rockthevote
                 // Check if vote is already in progress
                 if (_pluginState.EofVoteHappening || timeLeft > 0)
                 {
+#if DEBUG
                     _plugin?.Logger.LogWarning("StartVote: Attempted to start a vote while one is already in progress. Ignoring request.");
+#endif
                     return;
                 }
 
@@ -365,7 +374,9 @@ namespace cs2_rockthevote
                 _configBackup = _config;
 
                 _pluginState.EofVoteHappening = true;
+#if DEBUG
                 _plugin?.Logger.LogInformation("StartVote: Set EofVoteHappening to true at start of vote");
+#endif
                 _config = config;
                 int mapsToShow = _config!.MapsToShow == 0 ? MAX_OPTIONS_HUD_MENU : _config!.MapsToShow;
                 if (config.HudMenu && mapsToShow > MAX_OPTIONS_HUD_MENU)
@@ -402,7 +413,9 @@ namespace cs2_rockthevote
                             // Add a timeout check as a safety measure
                             if (_config!.VoteDuration > 0 && ((_config!.VoteDuration - timeLeft) > _config!.VoteDuration + 10))
                             {
+#if DEBUG
                                 _plugin?.Logger.LogWarning($"Vote timer safety triggered: Vote has been running too long. Forcing end.");
+#endif
                                 EndVote();
                                 return;
                             }
@@ -413,8 +426,10 @@ namespace cs2_rockthevote
                         // Ensure flag is reset even if there's an exception in the timer callback
                         KillTimer(); // Make sure to kill the timer on exception
                         _pluginState.EofVoteHappening = false;
+#if DEBUG
                         _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in timer callback");
                         _plugin?.Logger.LogError($"Error in vote timer: {ex.Message}");
+#endif
                     }
                 }, TimerFlags.REPEAT);
             }
@@ -422,8 +437,10 @@ namespace cs2_rockthevote
             {
                 KillTimer(); // Make sure to kill any timer if exception occurs
                 _pluginState.EofVoteHappening = false;
+#if DEBUG
                 _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in StartVote");
                 _plugin?.Logger.LogError($"Error starting vote: {ex.Message}");
+#endif
             }
         }
     }

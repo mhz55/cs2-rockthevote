@@ -29,11 +29,14 @@ namespace cs2_rockthevote
             string mapsFile = Path.Combine(_plugin!.ModulePath, "../maplist.txt");
             if (!File.Exists(mapsFile))
             {
+#if DEBUG
                 _plugin?.Logger.LogError($"MapLister: Maps file not found at {mapsFile}");
-                throw new FileNotFoundException(mapsFile);
+#endif
+                throw new FileNotFoundException(mapsFile); // This throw means not compatible with AcceleratorCS2 MetaMod plugin
             }
-
+#if DEBUG
             _plugin?.Logger.LogInformation($"MapLister: Loading maps from {mapsFile}");
+#endif
             Maps = File.ReadAllText(mapsFile)
                 .Replace("\r\n", "\n")
                 .Split("\n")
@@ -47,7 +50,9 @@ namespace cs2_rockthevote
                 .ToArray();
 
             MapsLoaded = true;
+#if DEBUG
             _plugin?.Logger.LogInformation($"MapLister: Successfully loaded {Maps.Length} maps");
+#endif
             if (EventMapsLoaded is not null)
                 EventMapsLoaded.Invoke(this, Maps!);
         }
@@ -56,7 +61,9 @@ namespace cs2_rockthevote
         {
             if (_plugin is not null)
             {
+#if DEBUG
                 _plugin.Logger.LogInformation($"MapLister: Map started, reloading maps");
+#endif
                 LoadMaps();
             }
         }
