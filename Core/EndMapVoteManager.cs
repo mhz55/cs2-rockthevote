@@ -396,7 +396,7 @@ namespace cs2_rockthevote
                 timeLeft = _config.VoteDuration;
 
                 // Kill any existing timer to avoid duplicates
-                KillTimer();
+                //KillTimer(); // the KillTimer here flawed the countdown timer
 
                 Timer = _plugin!.AddTimer(1.0F, () =>
                 {
