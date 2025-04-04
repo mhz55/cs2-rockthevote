@@ -174,7 +174,11 @@ namespace cs2_rockthevote
                 });
             }
 
-            foreach (var map in mapsEllected.Take((_eomConfig != null && _eomConfig.AllowExtend && (_eomConfig.ExtendLimit > 0 || _eomConfig.ExtendLimit == -1)) ? (MAX_OPTIONS_HUD_MENU - 1) : MAX_OPTIONS_HUD_MENU))
+            int mapsToShow = _config!.MapsToShow == 0 ? MAX_OPTIONS_HUD_MENU : _config!.MapsToShow;
+            if (_config.HudMenu && mapsToShow > MAX_OPTIONS_HUD_MENU)
+                mapsToShow = MAX_OPTIONS_HUD_MENU;
+
+            foreach (var map in mapsEllected.Take((_eomConfig != null && _eomConfig.AllowExtend && (_eomConfig.ExtendLimit > 0 || _eomConfig.ExtendLimit == -1)) ? (mapsToShow - 1) : mapsToShow))
             {
                 if (!Votes.ContainsKey(map))
                 {
@@ -384,9 +388,7 @@ namespace cs2_rockthevote
                 _plugin?.Logger.LogInformation("StartVote: Set EofVoteHappening to true at start of vote");
 #endif
                 _config = config;
-                int mapsToShow = _config!.MapsToShow == 0 ? MAX_OPTIONS_HUD_MENU : _config!.MapsToShow;
-                if (config.HudMenu && mapsToShow > MAX_OPTIONS_HUD_MENU)
-                    mapsToShow = MAX_OPTIONS_HUD_MENU;
+
 
                 var mapsScrambled = Shuffle(new Random(),
                     _mapLister.Maps!.Select(x => x.Name).Where(x => x != Server.MapName && !_mapCooldown.IsMapInCooldown(x))
