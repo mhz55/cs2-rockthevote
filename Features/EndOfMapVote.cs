@@ -66,7 +66,12 @@ namespace cs2_rockthevote
         {
             KillTimer();
             if (_config.Enabled)
-            {        
+            {
+                if (_pluginState.EofVoteHappening)
+                {
+                    Server.PrintToChatAll($"[RockTheVote] End of map vote is already in progress. Cannot start a new vote.");
+                    return;
+                }
                 _voteManager.StartVote(_config);
             }
         }
@@ -98,7 +103,7 @@ namespace cs2_rockthevote
                     {
                         if (_gameRules is not null && !_gameRules.WarmupRunning && !_pluginState.DisableCommands && _timeLimit.TimeRemaining > 0)
                         {
-                            if (CheckTimeLeft())
+                            if (CheckTimeLeft() && !_pluginState.EofVoteHappening)
                                 StartVote();
                         }
                     }, TimerFlags.REPEAT);
@@ -107,8 +112,7 @@ namespace cs2_rockthevote
 
             plugin.RegisterEventHandler<EventRoundStart>((ev, info) =>
             {
-
-                if (!_pluginState.DisableCommands && !_gameRules.WarmupRunning && CheckMaxRounds() && _config.Enabled)
+                if (!_pluginState.DisableCommands && !_gameRules.WarmupRunning && CheckMaxRounds() && _config.Enabled && !_pluginState.EofVoteHappening)
                     StartVote();
                 else if (deathMatch)
                 {

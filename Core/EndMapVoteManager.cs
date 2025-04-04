@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Timers;
 using cs2_rockthevote.Core;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -94,6 +95,13 @@ namespace cs2_rockthevote
             KillTimer();
             _eomConfig!.ExtendLimit = _totalExtendLimit;
 
+            // Make sure all state flags are reset
+            _pluginState.EofVoteHappening = false;
+            _pluginState.CommandsDisabled = false;
+            _pluginState.MapChangeScheduled = false;
+            _pluginState.ExtendTimeVoteHappening = false;
+            _plugin?.Logger.LogInformation("OnMapStart: Reset all state flags including EofVoteHappening to false");
+            
             // Restore the config if it was changed by the server command
             if (_configBackup is not null)
             {
@@ -183,11 +191,18 @@ namespace cs2_rockthevote
 
         void KillTimer()
         {
-            timeLeft = -1;
             if (Timer is not null)
             {
                 Timer!.Kill();
                 Timer = null;
+            }
+
+            timeLeft = -1;
+
+            if (_pluginState.EofVoteHappening)
+            {
+                _pluginState.EofVoteHappening = false;
+                _plugin?.Logger.LogInformation("KillTimer: Reset EofVoteHappening to false");
             }
         }
 
@@ -229,84 +244,93 @@ namespace cs2_rockthevote
 
         void EndVote()
         {
-            bool mapEnd = _config is EndOfMapConfig;
-            KillTimer();
-            decimal maxVotes = Votes.Select(x => x.Value).Max();
-            IEnumerable<KeyValuePair<string, int>> potentialWinners = Votes.Where(x => x.Value == maxVotes);
-            Random rnd = new();
-            KeyValuePair<string, int> winner = potentialWinners.ElementAt(rnd.Next(0, potentialWinners.Count()));
-
-            decimal totalVotes = Votes.Select(x => x.Value).Sum();
-            decimal percent = totalVotes > 0 ? winner.Value / totalVotes * 100M : 0;
-
-            if (maxVotes > 0)
+            try
             {
-                Server.PrintToChatAll(_localizer.LocalizeWithPrefix("emv.vote-ended", winner.Key, percent, totalVotes));
-            }
-            else
-            {
-                Server.PrintToChatAll(_localizer.LocalizeWithPrefix("emv.vote-ended-no-votes", winner.Key));
-            }
+                bool mapEnd = _config is EndOfMapConfig;
+                KillTimer();
+                decimal maxVotes = Votes.Select(x => x.Value).Max();
+                IEnumerable<KeyValuePair<string, int>> potentialWinners = Votes.Where(x => x.Value == maxVotes);
+                Random rnd = new();
+                KeyValuePair<string, int> winner = potentialWinners.ElementAt(rnd.Next(0, potentialWinners.Count()));
 
-            PrintCenterTextAll(_localizer.Localize("emv.hud.finished", winner.Key));
+                decimal totalVotes = Votes.Select(x => x.Value).Sum();
+                decimal percent = totalVotes > 0 ? winner.Value / totalVotes * 100M : 0;
 
-            if (winner.Key == _localizer.Localize("general.extend-current-map"))
-            {
-                if (_config != null)
+                if (maxVotes > 0)
                 {
-                    if (_config.ExtendTimeStep > 0 && !_timeLimitManager.UnlimitedTime)
-                    {
-                        if (_eomConfig!.RoundBased == true)
-                        {
-                            _extendRoundTimeManager.ExtendMapTimeLimit(_config.ExtendTimeStep, _timeLimitManager, _gameRules);
-                        }
-                        else
-                        {
-                            _extendRoundTimeManager.ExtendRoundTime(_config.ExtendTimeStep, _timeLimitManager, _gameRules);
-                        }
-                        Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.vote-ended.passed",
-                            _config.ExtendTimeStep, percent, totalVotes));
-                    }
-                    else if (_config.ExtendRoundStep > 0 && !_roundLimitManager.UnlimitedRound)
-                    {
-                        _roundLimitManager.RoundsRemaining =
-                            _roundLimitManager.RoundLimitValue + _config.ExtendRoundStep;
-                        Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.vote-ended.passed.rounds",
-                            _config.ExtendRoundStep, percent, totalVotes));
-                    }
-
-                    if (_eomConfig!.ExtendLimit != -1)
-                    {
-                        _eomConfig!.ExtendLimit--;
-                        Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.extendsleft", _eomConfig.ExtendLimit, _totalExtendLimit));
-                    }
-
-                    _pluginState.MapChangeScheduled = false;
-                    _pluginState.EofVoteHappening = false;
-                    _pluginState.CommandsDisabled = false;
-                    _pluginState.ExtendTimeVoteHappening = false;
-
-                    _nominationManager.ResetNominations();
-                    _nominationManager.Nomlist.Clear();
-                    mapEnd = false;
+                    Server.PrintToChatAll(_localizer.LocalizeWithPrefix("emv.vote-ended", winner.Key, percent, totalVotes));
                 }
-            }
-            else
-            {
-                _changeMapManager.ScheduleMapChange(winner.Key, mapEnd: mapEnd);
-                _votemapConfig.Enabled = false;
-                if (_config != null && _config.ChangeMapImmediately)
-                    _changeMapManager.ChangeNextMap(mapEnd);
                 else
                 {
-                    if (!mapEnd)
+                    Server.PrintToChatAll(_localizer.LocalizeWithPrefix("emv.vote-ended-no-votes", winner.Key));
+                }
+
+                PrintCenterTextAll(_localizer.Localize("emv.hud.finished", winner.Key));
+
+                if (winner.Key == _localizer.Localize("general.extend-current-map"))
+                {
+                    if (_config != null)
                     {
-                        Server.PrintToChatAll(_localizer.LocalizeWithPrefix("general.changing-map-next-round", winner.Key));
-                        _pluginState.CommandsDisabled = true;
+                        if (_config.ExtendTimeStep > 0 && !_timeLimitManager.UnlimitedTime)
+                        {
+                            if (_eomConfig!.RoundBased == true)
+                            {
+                                _extendRoundTimeManager.ExtendMapTimeLimit(_config.ExtendTimeStep, _timeLimitManager, _gameRules);
+                            }
+                            else
+                            {
+                                _extendRoundTimeManager.ExtendRoundTime(_config.ExtendTimeStep, _timeLimitManager, _gameRules);
+                            }
+                            Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.vote-ended.passed",
+                                _config.ExtendTimeStep, percent, totalVotes));
+                        }
+                        else if (_config.ExtendRoundStep > 0 && !_roundLimitManager.UnlimitedRound)
+                        {
+                            _roundLimitManager.RoundsRemaining =
+                                _roundLimitManager.RoundLimitValue + _config.ExtendRoundStep;
+                            Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.vote-ended.passed.rounds",
+                                _config.ExtendRoundStep, percent, totalVotes));
+                        }
+
+                        if (_eomConfig!.ExtendLimit != -1)
+                        {
+                            _eomConfig!.ExtendLimit--;
+                            Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.extendsleft", _eomConfig.ExtendLimit, _totalExtendLimit));
+                        }
+
+                        _pluginState.MapChangeScheduled = false;
+                        _pluginState.CommandsDisabled = false;
+                        _pluginState.ExtendTimeVoteHappening = false;
+
+                        _nominationManager.ResetNominations();
+                        _nominationManager.Nomlist.Clear();
+                    }
+                }
+                else
+                {
+                    _changeMapManager.ScheduleMapChange(winner.Key, mapEnd: mapEnd);
+                    _votemapConfig.Enabled = false;
+                    if (_config != null && _config.ChangeMapImmediately)
+                        _changeMapManager.ChangeNextMap(mapEnd);
+                    else
+                    {
+                        if (!mapEnd)
+                        {
+                            Server.PrintToChatAll(_localizer.LocalizeWithPrefix("general.changing-map-next-round", winner.Key));
+                            _pluginState.CommandsDisabled = true;
+                        }
                     }
                 }
             }
-            _pluginState.EofVoteHappening = false;
+            catch (Exception ex)
+            {
+                _plugin?.Logger.LogError($"Error ending vote: {ex.Message}");
+            }
+            finally
+            {
+                _pluginState.EofVoteHappening = false;
+                _plugin?.Logger.LogInformation("EndVote: Reset EofVoteHappening to false in finally block");
+            }
         }
 
         IList<T> Shuffle<T>(Random rng, IList<T> array)
@@ -324,40 +348,83 @@ namespace cs2_rockthevote
 
         public void StartVote(IEndOfMapConfig config)
         {
-            Votes.Clear();
-            PlayerVotes.Clear();
-            _voted.Clear();
-
-            // Backup the current config as if this is called via the server command, the config will be changed
-            _configBackup = _config;
-
-            _pluginState.EofVoteHappening = true;
-            _config = config;
-            int mapsToShow = _config!.MapsToShow == 0 ? MAX_OPTIONS_HUD_MENU : _config!.MapsToShow;
-            if (config.HudMenu && mapsToShow > MAX_OPTIONS_HUD_MENU)
-                mapsToShow = MAX_OPTIONS_HUD_MENU;
-
-            var mapsScrambled = Shuffle(new Random(),
-                _mapLister.Maps!.Select(x => x.Name).Where(x => x != Server.MapName && !_mapCooldown.IsMapInCooldown(x))
-                    .ToList());
-            mapsEllected = _nominationManager.NominationWinners().Concat(mapsScrambled).Distinct().ToList();
-
-            _canVote = ServerManager.ValidPlayerCount();
-            var menu = CreateMapVoteMenu();
-
-            foreach (var player in ServerManager.ValidPlayers())
-                MenuManager.OpenChatMenu(player, menu);
-
-            timeLeft = _config.VoteDuration;
-            Timer = _plugin!.AddTimer(1.0F, () =>
+            try
             {
-                if (timeLeft <= 0)
+                // Check if vote is already in progress
+                if (_pluginState.EofVoteHappening || timeLeft > 0)
                 {
-                    EndVote();
+                    _plugin?.Logger.LogWarning("StartVote: Attempted to start a vote while one is already in progress. Ignoring request.");
+                    return;
                 }
-                else
-                    timeLeft--;
-            }, TimerFlags.REPEAT);
+
+                Votes.Clear();
+                PlayerVotes.Clear();
+                _voted.Clear();
+
+                // Backup the current config as if this is called via the server command, the config will be changed
+                _configBackup = _config;
+
+                _pluginState.EofVoteHappening = true;
+                _plugin?.Logger.LogInformation("StartVote: Set EofVoteHappening to true at start of vote");
+                _config = config;
+                int mapsToShow = _config!.MapsToShow == 0 ? MAX_OPTIONS_HUD_MENU : _config!.MapsToShow;
+                if (config.HudMenu && mapsToShow > MAX_OPTIONS_HUD_MENU)
+                    mapsToShow = MAX_OPTIONS_HUD_MENU;
+
+                var mapsScrambled = Shuffle(new Random(),
+                    _mapLister.Maps!.Select(x => x.Name).Where(x => x != Server.MapName && !_mapCooldown.IsMapInCooldown(x))
+                        .ToList());
+                mapsEllected = _nominationManager.NominationWinners().Concat(mapsScrambled).Distinct().ToList();
+
+                _canVote = ServerManager.ValidPlayerCount();
+                var menu = CreateMapVoteMenu();
+
+                foreach (var player in ServerManager.ValidPlayers())
+                    MenuManager.OpenChatMenu(player, menu);
+
+                timeLeft = _config.VoteDuration;
+
+                // Kill any existing timer to avoid duplicates
+                KillTimer();
+
+                Timer = _plugin!.AddTimer(1.0F, () =>
+                {
+                    try
+                    {
+                        if (timeLeft <= 0)
+                        {
+                            EndVote();
+                            return; // Add explicit return to ensure code after doesn't run
+                        }
+                        else
+                        {
+                            timeLeft--;
+                            // Add a timeout check as a safety measure
+                            if (_config!.VoteDuration > 0 && ((_config!.VoteDuration - timeLeft) > _config!.VoteDuration + 10))
+                            {
+                                _plugin?.Logger.LogWarning($"Vote timer safety triggered: Vote has been running too long. Forcing end.");
+                                EndVote();
+                                return;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Ensure flag is reset even if there's an exception in the timer callback
+                        KillTimer(); // Make sure to kill the timer on exception
+                        _pluginState.EofVoteHappening = false;
+                        _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in timer callback");
+                        _plugin?.Logger.LogError($"Error in vote timer: {ex.Message}");
+                    }
+                }, TimerFlags.REPEAT);
+            }
+            catch (Exception ex)
+            {
+                KillTimer(); // Make sure to kill any timer if exception occurs
+                _pluginState.EofVoteHappening = false;
+                _plugin?.Logger.LogInformation("StartVote: Reset EofVoteHappening to false due to exception in StartVote");
+                _plugin?.Logger.LogError($"Error starting vote: {ex.Message}");
+            }
         }
     }
 }

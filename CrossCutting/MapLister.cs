@@ -1,6 +1,5 @@
-﻿using cs2_rockthevote.Core;
-using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities;
+﻿using CounterStrikeSharp.API.Core;
+using Microsoft.Extensions.Logging;
 
 namespace cs2_rockthevote
 {
@@ -29,8 +28,12 @@ namespace cs2_rockthevote
             Clear();
             string mapsFile = Path.Combine(_plugin!.ModulePath, "../maplist.txt");
             if (!File.Exists(mapsFile))
+            {
+                _plugin?.Logger.LogError($"MapLister: Maps file not found at {mapsFile}");
                 throw new FileNotFoundException(mapsFile);
+            }
 
+            _plugin?.Logger.LogInformation($"MapLister: Loading maps from {mapsFile}");
             Maps = File.ReadAllText(mapsFile)
                 .Replace("\r\n", "\n")
                 .Split("\n")
@@ -44,6 +47,7 @@ namespace cs2_rockthevote
                 .ToArray();
 
             MapsLoaded = true;
+            _plugin?.Logger.LogInformation($"MapLister: Successfully loaded {Maps.Length} maps");
             if (EventMapsLoaded is not null)
                 EventMapsLoaded.Invoke(this, Maps!);
         }
@@ -51,7 +55,10 @@ namespace cs2_rockthevote
         public void OnMapStart(string _map)
         {
             if (_plugin is not null)
+            {
+                _plugin.Logger.LogInformation($"MapLister: Map started, reloading maps");
                 LoadMaps();
+            }
         }
 
         public void OnLoad(Plugin plugin)
