@@ -286,13 +286,19 @@ namespace cs2_rockthevote
                             }
                             Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.vote-ended.passed",
                                 _config.ExtendTimeStep, percent, totalVotes));
+#if DEBUG
+                            _plugin?.Logger.LogInformation($"EndVote: Extended map time by {_config.ExtendTimeStep} minutes");
+#endif
                         }
-                        else if (_config.ExtendRoundStep > 0 && !_roundLimitManager.UnlimitedRound)
+                        if (_config.ExtendRoundStep > 0 && !_roundLimitManager.UnlimitedRound)
                         {
                             _roundLimitManager.RoundsRemaining =
                                 _roundLimitManager.RoundLimitValue + _config.ExtendRoundStep;
                             Server.PrintToChatAll(_localizer.LocalizeWithPrefix("extendtime.vote-ended.passed.rounds",
                                 _config.ExtendRoundStep, percent, totalVotes));
+#if DEBUG
+                            _plugin?.Logger.LogInformation($"EndVote: Extended current map by {_config.ExtendRoundStep} rounds");
+#endif
                         }
 
                         if (_eomConfig!.ExtendLimit != -1)
