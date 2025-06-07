@@ -9,6 +9,11 @@ General purpose map voting plugin, started as a simple RTV and now has more feat
 Please drop a ⭐ star in the repository 
 
 > [!WARNING]
+> If you are upgrading from Abnerfs original version, please also update (or delete) the config file
+> 
+> `/game/csgo/addons/counterstrikesharp/configs/plugins/RockTheVote/RockTheVote.json`
+
+> [!WARNING]
 > Notes from Oz-Lin:
 > 
 > This fork of the plugin mainly considers ZE/ZM/ZR Zombie Escape/Survival/Riot, or any round-based game modes.
