@@ -26,7 +26,7 @@ namespace cs2_rockthevote
         public void LoadMaps()
         {
             Clear();
-            string mapsFile = Path.Combine(_plugin!.ModulePath, "../maplist.txt");
+            string mapsFile = Path.Combine(_plugin!.ModuleDirectory, "maplist.txt");
             if (!File.Exists(mapsFile))
             {
 #if DEBUG
