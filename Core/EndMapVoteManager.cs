@@ -349,7 +349,7 @@ namespace cs2_rockthevote
                 _plugin?.Logger.LogInformation("EndVote: Reset EofVoteHappening to false in finally block");
                 _plugin?.Logger.LogInformation($"Additionaly setting nextlevel to winner: {winner.Key}");
 #endif
-                if (_config!.PauseMatchWhenVote)
+                if (_plugin!.Config.EndOfMapVote.PauseMatchWhenVote)
                 {
                     Server.ExecuteCommand("mp_unpause_match");
                 }
@@ -399,7 +399,7 @@ namespace cs2_rockthevote
                 _config = config;
 
 
-                if (_config!.PauseMatchWhenVote)
+                if (_plugin!.Config.EndOfMapVote.PauseMatchWhenVote)
                 {
 #if DEBUG
                     _plugin?.Logger.LogWarning("Execute mp_pause_match");
