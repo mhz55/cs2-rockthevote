@@ -114,7 +114,6 @@ namespace cs2_rockthevote
 
         public void MapVoted(CCSPlayerController player, string mapName)
         {
-            Server.PrintToChatAll("Chuj");
             if (_config!.HideHudAfterVote)
                 _voted.Add(player.UserId!.Value);
 
@@ -172,7 +171,6 @@ namespace cs2_rockthevote
                 menu.AddMenuOption(_localizer.Localize("general.extend-current-map"), (player, option) =>
                 {
                     MapVoted(player, _localizer.Localize("general.extend-current-map"));
-                    //Server.PrintToChatAll("Zaglosowales 1");
                     MenuManager.CloseActiveMenu(player);
                 });
             }
@@ -190,7 +188,6 @@ namespace cs2_rockthevote
                 menu.AddMenuOption(map, (player, option) =>
                 {
                     MapVoted(player, map);
-                    Server.PrintToChatAll("Zaglosowales 2");
                     MenuManager.CloseActiveMenu(player);
                 });
             }
@@ -352,6 +349,11 @@ namespace cs2_rockthevote
                 _plugin?.Logger.LogInformation("EndVote: Reset EofVoteHappening to false in finally block");
                 _plugin?.Logger.LogInformation($"Additionaly setting nextlevel to winner: {winner.Key}");
 #endif
+                if (_config!.PauseMatchWhenVote)
+                {
+                    Server.ExecuteCommand("mp_unpause_match");
+                }
+
                 Server.ExecuteCommand($"nextlevel {winner.Key}");
             }
         }
@@ -382,6 +384,7 @@ namespace cs2_rockthevote
                     return;
                 }
 
+
                 Votes.Clear();
                 PlayerVotes.Clear();
                 _voted.Clear();
@@ -394,6 +397,15 @@ namespace cs2_rockthevote
                 _plugin?.Logger.LogInformation("StartVote: Set EofVoteHappening to true at start of vote");
 #endif
                 _config = config;
+
+
+                if (_config!.PauseMatchWhenVote)
+                {
+#if DEBUG
+                    _plugin?.Logger.LogWarning("Execute mp_pause_match");
+#endif
+                    Server.ExecuteCommand("mp_pause_match");
+                }
 
 
                 var mapsScrambled = Shuffle(new Random(),
