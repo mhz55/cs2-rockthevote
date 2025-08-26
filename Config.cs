@@ -26,7 +26,6 @@ namespace cs2_rockthevote
         public bool HideHudAfterVote { get; set; }
         public int ExtendTimeStep { get; set; }
         public int ExtendRoundStep { get; set; }
-        public bool PauseMatchWhenVote { get; set; } 
 
     }
 
@@ -80,7 +79,6 @@ namespace cs2_rockthevote
         public int ExtendTimeStep { get; set; } = 15;
         public int ExtendRoundStep { get; set; } = 5;
         public int ExtendLimit { get; set; } = 3;
-        public bool PauseMatchWhenVote { get; set; } = false;
 
     }
 
