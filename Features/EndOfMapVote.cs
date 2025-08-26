@@ -6,6 +6,7 @@ using cs2_rockthevote.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using Microsoft.Extensions.DependencyInjection;
 using Timer = CounterStrikeSharp.API.Modules.Timers.Timer;
+using Microsoft.Extensions.Logging;
 
 namespace cs2_rockthevote
 {
@@ -17,6 +18,8 @@ namespace cs2_rockthevote
         private PluginState _pluginState;
         private GameRules _gameRules;
         private EndMapVoteManager _voteManager;
+
+        private ChangeMapManager _changeMapManager;
         private EndOfMapConfig _config = new();
         private Timer? _timer;
         private bool deathMatch => _gameMode?.GetPrimitiveValue<int>() == 2 && _gameType?.GetPrimitiveValue<int>() == 1;
@@ -24,7 +27,7 @@ namespace cs2_rockthevote
         private ConVar? _gameMode;
 
         // overload for multilang support
-        public EndOfMapVote(StringLocalizer localizer, TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager)
+        public EndOfMapVote(StringLocalizer localizer, TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager, ChangeMapManager changeMapManager)
         {
             _localizer = localizer;
             _timeLimit = timeLimit;
@@ -32,8 +35,9 @@ namespace cs2_rockthevote
             _pluginState = pluginState;
             _gameRules = gameRules;
             _voteManager = voteManager;
+            _changeMapManager = changeMapManager;
         }
-        public EndOfMapVote(TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager)
+        public EndOfMapVote(TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager, ChangeMapManager changeMapManager)
         {
             //_localizer = new StringLocalizer();
             _timeLimit = timeLimit;
@@ -41,6 +45,7 @@ namespace cs2_rockthevote
             _pluginState = pluginState;
             _gameRules = gameRules;
             _voteManager = voteManager;
+            _changeMapManager = changeMapManager;
         }
 
         bool CheckMaxRounds()
@@ -127,6 +132,17 @@ namespace cs2_rockthevote
                 MaybeStartTimer();
                 return HookResult.Continue;
             });
+
+            plugin.RegisterEventHandler<EventCsWinPanelMatch>((ev, info) =>
+            {
+#if DEBUG
+                plugin?.Logger.LogInformation("WinPanelMatch active. Ending voting so nextlevel wont not be null.");
+#endif
+                _voteManager.timeLeft = -1; // This ends if voting is still going.
+                return HookResult.Continue;
+            }, HookMode.Pre);
+
+
         }
 
         public void OnConfigParsed(Config config)

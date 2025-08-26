@@ -59,7 +59,7 @@ namespace cs2_rockthevote
 
         Dictionary<string, int> Votes = new();
         Dictionary<CCSPlayerController, string> PlayerVotes = new();
-        int timeLeft = -1;
+        public int timeLeft = -1;
 
         List<string> mapsEllected = new();
 
@@ -74,6 +74,7 @@ namespace cs2_rockthevote
 
         public bool VoteInProgress => timeLeft >= 0;
 
+        private KeyValuePair<string, int> winner;
         public void OnLoad(Plugin plugin)
         {
             _plugin = plugin;
@@ -113,6 +114,7 @@ namespace cs2_rockthevote
 
         public void MapVoted(CCSPlayerController player, string mapName)
         {
+            Server.PrintToChatAll("Chuj");
             if (_config!.HideHudAfterVote)
                 _voted.Add(player.UserId!.Value);
 
@@ -170,6 +172,7 @@ namespace cs2_rockthevote
                 menu.AddMenuOption(_localizer.Localize("general.extend-current-map"), (player, option) =>
                 {
                     MapVoted(player, _localizer.Localize("general.extend-current-map"));
+                    //Server.PrintToChatAll("Zaglosowales 1");
                     MenuManager.CloseActiveMenu(player);
                 });
             }
@@ -187,6 +190,7 @@ namespace cs2_rockthevote
                 menu.AddMenuOption(map, (player, option) =>
                 {
                     MapVoted(player, map);
+                    Server.PrintToChatAll("Zaglosowales 2");
                     MenuManager.CloseActiveMenu(player);
                 });
             }
@@ -258,7 +262,7 @@ namespace cs2_rockthevote
                 decimal maxVotes = Votes.Select(x => x.Value).Max();
                 IEnumerable<KeyValuePair<string, int>> potentialWinners = Votes.Where(x => x.Value == maxVotes);
                 Random rnd = new();
-                KeyValuePair<string, int> winner = potentialWinners.ElementAt(rnd.Next(0, potentialWinners.Count()));
+                winner = potentialWinners.ElementAt(rnd.Next(0, potentialWinners.Count()));
 
                 decimal totalVotes = Votes.Select(x => x.Value).Sum();
                 decimal percent = totalVotes > 0 ? winner.Value / totalVotes * 100M : 0;
@@ -346,7 +350,9 @@ namespace cs2_rockthevote
                 _pluginState.EofVoteHappening = false;
 #if DEBUG
                 _plugin?.Logger.LogInformation("EndVote: Reset EofVoteHappening to false in finally block");
+                _plugin?.Logger.LogInformation($"Additionaly setting nextlevel to winner: {winner.Key}");
 #endif
+                Server.ExecuteCommand($"nextlevel {winner.Key}");
             }
         }
 
