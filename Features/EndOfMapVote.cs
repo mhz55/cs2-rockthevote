@@ -19,7 +19,6 @@ namespace cs2_rockthevote
         private GameRules _gameRules;
         private EndMapVoteManager _voteManager;
 
-        private ChangeMapManager _changeMapManager;
         private EndOfMapConfig _config = new();
         private Timer? _timer;
         private bool deathMatch => _gameMode?.GetPrimitiveValue<int>() == 2 && _gameType?.GetPrimitiveValue<int>() == 1;
@@ -27,7 +26,7 @@ namespace cs2_rockthevote
         private ConVar? _gameMode;
 
         // overload for multilang support
-        public EndOfMapVote(StringLocalizer localizer, TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager, ChangeMapManager changeMapManager)
+        public EndOfMapVote(StringLocalizer localizer, TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager)
         {
             _localizer = localizer;
             _timeLimit = timeLimit;
@@ -35,9 +34,8 @@ namespace cs2_rockthevote
             _pluginState = pluginState;
             _gameRules = gameRules;
             _voteManager = voteManager;
-            _changeMapManager = changeMapManager;
         }
-        public EndOfMapVote(TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager, ChangeMapManager changeMapManager)
+        public EndOfMapVote(TimeLimitManager timeLimit, MaxRoundsManager maxRounds, PluginState pluginState, GameRules gameRules, EndMapVoteManager voteManager)
         {
             //_localizer = new StringLocalizer();
             _timeLimit = timeLimit;
@@ -45,7 +43,6 @@ namespace cs2_rockthevote
             _pluginState = pluginState;
             _gameRules = gameRules;
             _voteManager = voteManager;
-            _changeMapManager = changeMapManager;
         }
 
         bool CheckMaxRounds()
