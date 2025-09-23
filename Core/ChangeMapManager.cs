@@ -89,6 +89,7 @@ namespace cs2_rockthevote
 #if DEBUG
                     _plugin?.Logger.LogInformation($"ChangeMapManager: Executing changelevel command for {map.Name}");
 #endif
+                    Server.ExecuteCommand($"nextlevel {map.Name}"); // Better to be safe if nextlevel somehow will be still null
                     Server.ExecuteCommand($"changelevel {map.Name}");
                 }
                 else if (map.Id is not null)
@@ -96,6 +97,7 @@ namespace cs2_rockthevote
 #if DEBUG
                     _plugin?.Logger.LogInformation($"ChangeMapManager: Executing host_workshop_map command for map ID {map.Id}");
 #endif                                           
+                    //Server.ExecuteCommand($"nextlevel {map.Name}");  // Better to be safe if nextlevel somehow will be still null
                     Server.ExecuteCommand($"host_workshop_map {map.Id}");
                 }
                 else
@@ -103,6 +105,7 @@ namespace cs2_rockthevote
 #if DEBUG
                     _plugin?.Logger.LogInformation($"ChangeMapManager: Executing ds_workshop_changelevel command for {map.Name}");
 #endif
+                    Server.ExecuteCommand($"nextlevel {map.Name}");  // Better to be safe if nextlevel somehow will be still null
                     Server.ExecuteCommand($"ds_workshop_changelevel {map.Name}");
                 }
             });

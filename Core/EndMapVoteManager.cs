@@ -59,7 +59,7 @@ namespace cs2_rockthevote
 
         Dictionary<string, int> Votes = new();
         Dictionary<CCSPlayerController, string> PlayerVotes = new();
-        int timeLeft = -1;
+        public int timeLeft = -1;
 
         List<string> mapsEllected = new();
 
@@ -74,6 +74,7 @@ namespace cs2_rockthevote
 
         public bool VoteInProgress => timeLeft >= 0;
 
+        private KeyValuePair<string, int> winner;
         public void OnLoad(Plugin plugin)
         {
             _plugin = plugin;
@@ -258,7 +259,7 @@ namespace cs2_rockthevote
                 decimal maxVotes = Votes.Select(x => x.Value).Max();
                 IEnumerable<KeyValuePair<string, int>> potentialWinners = Votes.Where(x => x.Value == maxVotes);
                 Random rnd = new();
-                KeyValuePair<string, int> winner = potentialWinners.ElementAt(rnd.Next(0, potentialWinners.Count()));
+                winner = potentialWinners.ElementAt(rnd.Next(0, potentialWinners.Count()));
 
                 decimal totalVotes = Votes.Select(x => x.Value).Sum();
                 decimal percent = totalVotes > 0 ? winner.Value / totalVotes * 100M : 0;
@@ -346,7 +347,14 @@ namespace cs2_rockthevote
                 _pluginState.EofVoteHappening = false;
 #if DEBUG
                 _plugin?.Logger.LogInformation("EndVote: Reset EofVoteHappening to false in finally block");
+                _plugin?.Logger.LogInformation($"Additionaly setting nextlevel to winner: {winner.Key}");
 #endif
+                if (_plugin!.Config.EndOfMapVote.PauseMatchWhenVote)
+                {
+                    Server.ExecuteCommand("mp_unpause_match");
+                }
+
+                Server.ExecuteCommand($"nextlevel {winner.Key}");
             }
         }
 
@@ -376,6 +384,7 @@ namespace cs2_rockthevote
                     return;
                 }
 
+
                 Votes.Clear();
                 PlayerVotes.Clear();
                 _voted.Clear();
@@ -388,6 +397,15 @@ namespace cs2_rockthevote
                 _plugin?.Logger.LogInformation("StartVote: Set EofVoteHappening to true at start of vote");
 #endif
                 _config = config;
+
+
+                if (_plugin!.Config.EndOfMapVote.PauseMatchWhenVote)
+                {
+#if DEBUG
+                    _plugin?.Logger.LogWarning("Execute mp_pause_match");
+#endif
+                    Server.ExecuteCommand("mp_pause_match");
+                }
 
 
                 var mapsScrambled = Shuffle(new Random(),
