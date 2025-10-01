@@ -53,7 +53,7 @@ namespace cs2_rockthevote
         private Timer? Timer;
         private readonly ExtendRoundTimeManager _extendRoundTimeManager;
         private readonly TimeLimitManager _timeLimitManager;
-        private readonly RoundLimitManager _roundLimitManager;
+        public readonly RoundLimitManager _roundLimitManager; //for now
         private readonly GameRules _gameRules;
         private VotemapConfig _votemapConfig = new(); // dealing with votemap overrides endmapvote nextmap
 
@@ -250,7 +250,7 @@ namespace cs2_rockthevote
             }
         }
 
-        void EndVote()
+        public void EndVote()
         {
             try
             {

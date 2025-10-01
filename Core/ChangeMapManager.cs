@@ -10,6 +10,10 @@ namespace cs2_rockthevote
         [GameEventHandler(HookMode.Post)]
         public HookResult OnRoundEndMapChanger(EventRoundEnd @event, GameEventInfo info)
         {
+            if (_endMapVoteManager._roundLimitManager.RoundsRemaining == 0)
+            {
+                _endMapVoteManager.EndVote();
+            }
             _changeMapManager.ChangeNextMap();
             return HookResult.Continue;
         }
